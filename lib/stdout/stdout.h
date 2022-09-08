@@ -5,7 +5,7 @@
 
 class SDStateTemplate{
     public:
-        File sentDataFile;
+        File logFile;
         File stdoutFile;
         File backlogFile;
         String SDString = "";

@@ -35,12 +35,13 @@ void preparePostData()
   APIState.usage = 0;
   APIState.datetime = getCurrentDateTimeString();
   float usage_accum = 0;
-  for(int i = 0; i < MeasurementState.LenC; i++)
+  APIState.peak = MeasurementState.PRMS_max; // W
+  MeasurementState.PRMS_max = 0;
+  for(int i = 0; i < MeasurementState.PRMSBuff_Len; i++)
   {
-    if(MeasurementState.BuffC[i] > APIState.peak) APIState.peak = MeasurementState.BuffC[i]; // W
-    usage_accum += MeasurementState.BuffC[i]*(1.0/3600.0); // Wh
+    usage_accum += MeasurementState.PRMSBuff[i]*(1.0/3600.0); // Wh
   }
-  MeasurementState.LenC = 0;
+  MeasurementState.PRMSBuff_Len = 0;
   APIState.usage = usage_accum; // Wh
 }
 
@@ -91,7 +92,7 @@ int postData(bool first)
     if (first) {
       if(!SD.exists("backlog.txt")) // Add heading line
       {
-        SDState.SDString = "dt,usage(kWh),peak(W)";
+        SDState.SDString = "dt,usage(Wh),peak(W)";
         SDState.backlogFile = SD.open("backlog.txt", FILE_WRITE);
         if (SDState.backlogFile) {
           SDState.backlogFile.println(SDState.SDString);
@@ -134,11 +135,11 @@ int postData(bool first)
     SDState.SDString[25] = ((APIState.peak/100) % 10) + 48;
     SDState.SDString[26] = ((APIState.peak/10) % 10) + 48;
     SDState.SDString[27] = ((APIState.peak/1) % 10) + 48;
-    SDState.sentDataFile = SD.open("log.txt", FILE_WRITE); 
+    SDState.logFile = SD.open("log.txt", FILE_WRITE); 
     // if the file is available, write to it:
-    if (SDState.sentDataFile) {
-      SDState.sentDataFile.println(SDState.SDString);
-      SDState.sentDataFile.close();
+    if (SDState.logFile) {
+      SDState.logFile.println(SDState.SDString);
+      SDState.logFile.close();
     } else StandardOutput("error opening log.txt\n");
   }
   if (first) StandardOutput("##################################################\n\n");
@@ -237,9 +238,9 @@ void updateSystemDateTime()
     }
     StandardOutput("WorldTimeApi UnixTime Response:\n");
     StandardOutput("**JSON only printed in serial monitor, but api\n  call has been successful.\n");
-    Serial.println();
-    serializeJsonPretty(doc, Serial);
-    Serial.println();
+    // Serial.println();
+    // serializeJsonPretty(doc, Serial);
+    // Serial.println();
     uint32_t unixtime = 0;
     unixtime = doc["unixtime"];
     unixtime += 120*60; // Plus two hours

@@ -4,19 +4,15 @@
 #include <WiFiNINA.h>
 #include <ArduinoJson.h>
 #include <TimeLib.h>
-#include "SAMDTimerInterrupt.h"
-#include "SAMD_ISR_Timer.h"
 #include <SD.h>
 #include <BlynkSimpleWiFiNINA.h>
+// #include <Blynk.h>
 
 #include "stdout.h"
 #include "comm.h"
 #include "measure.h"
+#include "timing.h"
 
-SAMDTimer ITimer(TIMER_TC3);
-SAMD_ISR_Timer ISR_Timer;
-#define HW_TIMER_INTERVAL_MS      1
-#define TIMER_INTERVAL_1MS       1L
 BlynkTimer timer;
 
 // Wifi Credentials
@@ -28,10 +24,15 @@ int status = WL_IDLE_STATUS;     // the WiFi radio's status
 uint8_t lastLoopMin = 0;
 uint8_t thisLoopMin = 0;
 bool postedFlag = false;
+uint16_t sampleRate = 2000;
+uint16_t prescaler = 64;
 
 // API Credentialss
 char server[] = "21593698.pythonanywhere.com";
 char dt_server[] = "worldtimeapi.org";
+
+// Debug flag
+bool debug = false;
 
 WiFiClient client;
 APIStateTemplate APIState;
@@ -49,7 +50,6 @@ void setupWiFi()
   if (fv < WIFI_FIRMWARE_LATEST_VERSION) {
     StandardOutput("Please upgrade the firmware!\n");
   }
-  
   while (WiFi.status() != WL_CONNECTED) {
     StandardOutput("Attempting to connect to WPA SSID: " + String(ssid) + "\n");
     WiFi.begin(ssid, pass); // Connect to WPA/WPA2 network:
@@ -79,53 +79,56 @@ void maintainWiFi() {
   }
 }
 
-void TimerHandler(void)
-{
-  ISR_Timer.run();
+void TC5_Handler (void) {
+  readCurrent(sampleRate, debug);
+  TC5->COUNT32.INTFLAG.bit.MC0 = 1; //Writing a 1 to INTFLAG.bit.MC0 clears the interrupt so that it will run again
 }
 
-void myTimerEvent()
+void BlynkTimerHandler()
 {
   // You can send any value at any time.
   // Please don't send more that 10 values per second.
   Blynk.virtualWrite(V2, millis() / 1000);
-  Blynk.virtualWrite(V5, MeasurementState.PrmsAverage);
-}
-
-void setupHardwareTimer()
-{
-    StandardOutput("\n######## START HARDWARE TIMER ####################\n");
-  // Interval in millisecs
-  if (ITimer.attachInterruptInterval_MS(HW_TIMER_INTERVAL_MS, TimerHandler))
-  {
-    StandardOutput("Starting ITimer OK\n");
-  }
-  else
-  {
-    StandardOutput("Can't set ITimer. Select another freq. or timer\n");
-    while(1);
-  }
-  StandardOutput("##################################################\n\n");
-
-  ISR_Timer.setInterval(TIMER_INTERVAL_1MS,  readCurrent);
+  Blynk.virtualWrite(V5, MeasurementState.PRMS);
 }
 
 void initBlynk()
 {
+  StandardOutput("xxxxxxxxxxxxxxx Blynk Init xxxxxxxxxxxxxxxxxxxxxxx\n");
   Blynk.begin(auth, ssid, pass);
-  timer.setInterval(1000L, myTimerEvent);
+  StandardOutput("Connected\n");
+  // Blynk.config();
+  timer.setInterval(1000L, BlynkTimerHandler);
+  StandardOutput("Blynk timer interval set\n");
   Blynk.virtualWrite(V6, 0);
+  StandardOutput("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\n\n");
+}
+
+void debug_setup()
+{
+    pinMode(17, OUTPUT);
+    pinMode(19, OUTPUT);
+    digitalWrite(17, 0);
+    digitalWrite(19, 0);
 }
 
 void setup() {
+  double start_time = millis();
+  if (debug)
+  {
+    debug_setup();
+  }
   Serial.begin(115200);
-  delay(2000);
-  initBlynk();
+  while(!Serial && (millis()-start_time) < 15000);
   initSDCard();
   setupWiFi();
+  initBlynk();
   updateSystemDateTime(); // Requires a Connection
-  setupHardwareTimer();
-  lastLoopMin = minute();
+  set_adc_prescaler(); // Do this before starting interrupt
+  if(tcConfigure(sampleRate, prescaler)) { //configure the timer to run at <sampleRate>Hertz
+    tcStartCounter(); //starts the timer
+  } else StandardOutput("Unadble to Start Timer TC5!\n");
+  postBacklog();
 }
 
 void loop() {
@@ -141,6 +144,5 @@ void loop() {
   maintainWiFi();
   Blynk.run();
   timer.run();
-//  lastLoopMin = thisLoopMin;
 }
 
