@@ -106,10 +106,10 @@ void initBlynk()
 
 void debug_setup()
 {
-    pinMode(17, OUTPUT);
-    pinMode(19, OUTPUT);
-    digitalWrite(17, 0);
-    digitalWrite(19, 0);
+    pinMode(15, OUTPUT);
+    pinMode(18, OUTPUT);
+    digitalWrite(15, 0);
+    digitalWrite(18, 0);
 }
 
 void setup() {
