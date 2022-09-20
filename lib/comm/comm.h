@@ -4,6 +4,8 @@
 #include <WiFiNINA.h>
 #include <ArduinoJson.h>
 #include "stdout.h"
+#include "BlynkEvent.h"
+#include "System.h"
 
 class APIStateTemplate{
   public:
@@ -13,12 +15,15 @@ class APIStateTemplate{
     uint32_t last_post_time = 0;
     uint16_t posting_interval = 10*60; // Every 10 minutes
     uint32_t seconds_passed = 0;
+    bool datetime_updated = false;
 };
 
+extern SystemStateTemplate SystemState;
 extern APIStateTemplate APIState;
 extern SDStateTemplate SDState;
 extern WiFiClient client;
-extern char server[];
+extern BlynkEventStateTemplate BlynkEventState;
+extern char flask_server[];
 extern char dt_server[];
 extern char api_key[];
 

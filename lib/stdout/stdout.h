@@ -13,6 +13,7 @@ class SDStateTemplate{
 };
 
 extern SDStateTemplate SDState;
+extern uint8_t blynk_event_count;
 
 void StandardOutput(String message);
 void initSDCard();

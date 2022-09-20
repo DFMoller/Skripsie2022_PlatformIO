@@ -1,4 +1,3 @@
-// #include <Arduino.h>
 #include "stdout.h"
 
 void StandardOutput(String message)
@@ -16,7 +15,7 @@ void initSDCard()
   Serial.print("\n######## INIT SD CARD ############################\n");
   // see if the card is present and can be initialized:
   if (!SD.begin(SDState.ChipSelect)) {
-    StandardOutput("Card failed, or not present\n");
+    Serial.println("Card failed, or not present");
     while (1);
   }
   SDState.stdoutFile = SD.open("stdout.txt", FILE_WRITE);

@@ -9,6 +9,8 @@ class MeasurementStateTemplate{
     uint16_t PRMSBuff_Len = 0;
     float PRMS = 0;
     float PRMS_max = 0;
+    uint16_t frequency = 0;
+    String last_successful_post = "";
 };
 
 extern MeasurementStateTemplate MeasurementState;

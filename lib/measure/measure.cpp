@@ -23,9 +23,10 @@ void readCurrent(uint16_t sampleRate, bool debug)
   {
     if (debug) digitalWrite(18, 1);
     frequency = midpasses/2.0;
+    MeasurementState.frequency = frequency;
     // if(abs(frequency-50.0)/50.0 > 0.5) RMSCurrent = 0; // High frequency caused by noise in very low signals
     // else RMSCurrent = sqrt(SquareSum/SquareSumLen); // Calculate Irms from sum of squares
-    if(frequency > sampleRate/10) RMSCurrent = 0; // High frequency caused by noise in very low signals
+    if(frequency > sampleRate*0.09) RMSCurrent = 0; // High frequency caused by noise in very low signals
     else RMSCurrent = sqrt(SquareSum/SquareSumLen); // Calculate Irms from sum of squares
     RMSPower = RMSCurrent * 230.0;
     if(RMSPower > MeasurementState.PRMS_max) MeasurementState.PRMS_max = RMSPower;

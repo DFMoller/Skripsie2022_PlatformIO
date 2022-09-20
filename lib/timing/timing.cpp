@@ -101,16 +101,19 @@ bool tcConfigure(uint16_t sampleRate, uint16_t prescaler)
   // Serial.println(SystemCoreClock / (prescaler * sampleRate) - 1);
   StandardOutput("ARR-1 Value Set\n");
 
-
   // Configure interrupt request
   NVIC_DisableIRQ(TC5_IRQn);
   NVIC_ClearPendingIRQ(TC5_IRQn);
   NVIC_SetPriority(TC5_IRQn, 0);
   NVIC_EnableIRQ(TC5_IRQn);
+  StandardOutput("Interrupt Request Configured\n");
 
   // Enable the TC5 interrupt request
-  TC5->COUNT32.INTENSET.bit.MC0 = 1;
+  StandardOutput("About to Enable TC5 Interrupt Requests\n");
+  TC5->COUNT16.INTENSET.bit.MC0 = 1;
+  StandardOutput("TC5 Interrupt Requests Enabled\n");
   while (tcIsSyncing()); // wait until TC5 is done syncing
+  StandardOutput("TC5 Done Syncing\n");
   StandardOutput("##################################################\n\n");
   return true;
 }

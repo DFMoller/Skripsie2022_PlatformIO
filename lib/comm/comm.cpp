@@ -47,7 +47,7 @@ void preparePostData()
 
 int postToEndpoint(String endpoint, const JsonDocument& doc)
 {
-  if (client.connect(server, 80)){
+  if (client.connect(flask_server, 80)){
     client.print("POST ");
     client.print(endpoint);
     client.println(" HTTP/1.1");
@@ -68,6 +68,10 @@ int postToEndpoint(String endpoint, const JsonDocument& doc)
    line = client.readStringUntil('\n'); 
    StandardOutput(line + "\n"); 
   }
+  String event_str = "Device time at event: " + APIState.datetime;
+  BlynkEventState.event = "data_posted";
+  BlynkEventState.message = event_str;
+  BlynkEventState.flag = true;
   return 1;
 }
 
@@ -90,6 +94,9 @@ int postData(bool first)
   data_doc.clear();
   if(res == 0){
     if (first) {
+      BlynkEventState.event = "connection_error";
+      BlynkEventState.message = "Unable to send data to Flask Server";
+      BlynkEventState.flag = true;
       if(!SD.exists("backlog.txt")) // Add heading line
       {
         SDState.SDString = "dt,usage(Wh),peak(W)";
@@ -116,12 +123,17 @@ int postData(bool first)
       if (SDState.backlogFile) {
         SDState.backlogFile.println(SDState.SDString);
         SDState.backlogFile.close();
+        String event_str = "Backlog added: " + SDState.SDString;
+        BlynkEventState.event = "backlog";
+        BlynkEventState.message = event_str;
+        BlynkEventState.flag = true;
       } else StandardOutput("error opening backlog.txt\n");
     }
     StandardOutput("##################################################\n\n");
     return 0;
   }
   else{
+    MeasurementState.last_successful_post = APIState.datetime;
     StandardOutput("Successful write to server.\n");
 //    SDString = APIState.datetime + ',' + String(APIState.usage) + ',' + String(APIState.peak);
     SDState.SDString = APIState.datetime + ',' + "xxxxx" + ',' + "xxxxx";
@@ -182,6 +194,9 @@ void postBacklog()
       if (backlogCount == successfulWrites && SD.exists("backlog.txt")) {
         SD.remove("backlog.txt");
         StandardOutput("backlog.txt deleted\n");
+        BlynkEventState.event = "backlog";
+        BlynkEventState.message = "backlog.txt deleted after " + String(successfulWrites) + " successful writes";
+        BlynkEventState.flag = true;
       }
     }
     StandardOutput("##################################################\n\n");
@@ -190,7 +205,8 @@ void postBacklog()
 
 void updateSystemDateTime()
 {
-  StandardOutput("\n##### Update Sys Time ############################\n");
+  SystemState.ms_last_dt_update = millis();
+  StandardOutput("\n############### Update Sys Time ##################\n");
   StandardOutput("Starting connection to worldtimeapi server...\n"); 
   if (client.connect(dt_server, 80)) { 
     StandardOutput("Connected to worldtimeapi server.\n"); 
@@ -250,10 +266,12 @@ void updateSystemDateTime()
     filter.clear();
     doc.clear();
     StandardOutput("DT Set: " + getCurrentDateTimeString() + "\n");
-    // retry_updateTime = false;
+    APIState.datetime_updated = true;
   } else { 
     StandardOutput("Unable to connect to WorldTimeApi server\n");
-    // retry_updateTime = true;
+    BlynkEventState.event = "connection_error";
+    BlynkEventState.message = "Unable to connect to WorldTimeApi server";
+    BlynkEventState.flag = true;
   } 
   StandardOutput("##################################################\n\n");
 }
