@@ -25,6 +25,9 @@
 #include <Arduino.h>
 #include "Timer5.h"
 
+// Custom code
+#include "stdout.h"
+
 /*Global variables*/
 voidFuncPtr Timer_callBack = NULL;
 
@@ -61,7 +64,7 @@ void Timer5Class::start(void) {
  void Timer5Class::tcConfigure(uint16_t rate)  
 {
 	// Enable GCLK for TCC2 and TC5 (timer counter input clock)
-	GCLK->CLKCTRL.reg = (uint16_t) (GCLK_CLKCTRL_CLKEN | GCLK_CLKCTRL_GEN_GCLK1 | GCLK_CLKCTRL_ID(GCM_TC4_TC5)) ;
+	GCLK->CLKCTRL.reg = (uint16_t) (GCLK_CLKCTRL_CLKEN | GCLK_CLKCTRL_GEN_GCLK0 | GCLK_CLKCTRL_ID(GCM_TC4_TC5)) ;
 	//------------                                                  (GCLK1=32kHz)  was   0 = 48Mhz
 	while (GCLK->STATUS.bit.SYNCBUSY);
 
@@ -74,9 +77,9 @@ void Timer5Class::start(void) {
 	TC5->COUNT16.CTRLA.reg |= TC_CTRLA_WAVEGEN_MFRQ;
 
   // prescaler DIV1 (=no prescaler div)
-	TC5->COUNT16.CTRLA.reg |= TC_CTRLA_PRESCALER_DIV1 | TC_CTRLA_ENABLE;
+	TC5->COUNT16.CTRLA.reg |= TC_CTRLA_PRESCALER_DIV64 | TC_CTRLA_ENABLE;
 
-	TC5->COUNT16.CC[0].reg = (uint16_t) (32768/rate -1); //value; // (SystemCoreClock / sampleRate - 1);
+	TC5->COUNT16.CC[0].reg = (uint16_t) (SystemCoreClock/(64*rate) -1); //value; // (SystemCoreClock / sampleRate - 1);
 	while (tcIsSyncing());
 	
 	// Configure interrupt request

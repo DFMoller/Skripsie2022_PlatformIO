@@ -1,7 +1,7 @@
 // BLYNK
 #define BLYNK_TEMPLATE_ID "TMPLf5VKQGmB"
 #define BLYNK_DEVICE_NAME "Skripsie2022"
-#define BLYNK_FIRMWARE_VERSION        "0.1.21"
+#define BLYNK_FIRMWARE_VERSION        "0.1.22"
 #define BLYNK_PRINT Serial
 #define APP_DEBUG
 #include "BlynkEdgent.h"
