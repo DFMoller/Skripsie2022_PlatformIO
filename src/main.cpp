@@ -1,7 +1,7 @@
 // BLYNK
 #define BLYNK_TEMPLATE_ID "TMPLf5VKQGmB"
 #define BLYNK_DEVICE_NAME "Skripsie2022"
-#define BLYNK_FIRMWARE_VERSION        "0.1.22"
+#define BLYNK_FIRMWARE_VERSION        "0.1.24"
 #define BLYNK_PRINT Serial
 #define APP_DEBUG
 #include "BlynkEdgent.h"
@@ -28,7 +28,7 @@ int status = WL_IDLE_STATUS;     // the WiFi radio's status
 uint8_t lastLoopMin = 0;
 uint8_t thisLoopMin = 0;
 bool postedFlag = false;
-uint16_t sampleRate = 1000;
+uint16_t sampleRate = 2000;
 uint16_t prescaler = 64;
 uint8_t ten_ms_counter = 0;
 uint8_t blynk_event_count = 0;
@@ -58,6 +58,7 @@ void BlynkEventTrigger()
 }
 
 void Timer5_Handler() {
+  if (debug) digitalWrite(17, 1);
   readCurrent(sampleRate, debug);
   ten_ms_counter ++;
   // Call indicator_run() every 10ms
@@ -70,6 +71,7 @@ void Timer5_Handler() {
     ten_ms_counter = 0;
   }
   TC5->COUNT32.INTFLAG.bit.MC0 = 1; //Writing a 1 to INTFLAG.bit.MC0 clears the interrupt so that it will run again
+  if (debug) digitalWrite(17, 0);
 }
 
 void TC5_Initialize()
