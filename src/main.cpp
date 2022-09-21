@@ -1,7 +1,7 @@
 // BLYNK
 #define BLYNK_TEMPLATE_ID "TMPLf5VKQGmB"
 #define BLYNK_DEVICE_NAME "Skripsie2022"
-#define BLYNK_FIRMWARE_VERSION        "0.1.20"
+#define BLYNK_FIRMWARE_VERSION        "0.1.21"
 #define BLYNK_PRINT Serial
 #define APP_DEBUG
 #include "BlynkEdgent.h"
@@ -39,7 +39,7 @@ char flask_server[] = "21593698.pythonanywhere.com";
 char dt_server[] = "worldtimeapi.org";
 
 // Debug flag
-bool debug = false;  
+bool debug = true ;  
 
 SystemStateTemplate SystemState;
 WiFiClient client;
@@ -114,9 +114,9 @@ void initBlynk()
 
 void debug_setup()
 {
-    pinMode(15, OUTPUT);
+    pinMode(17, OUTPUT);
     pinMode(18, OUTPUT);
-    digitalWrite(15, 0);
+    digitalWrite(17, 0);
     digitalWrite(18, 0);
 
 }

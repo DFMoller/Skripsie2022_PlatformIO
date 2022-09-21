@@ -18,7 +18,7 @@ float RMSPower = 0;
 
 void readCurrent(uint16_t sampleRate, bool debug)
 {
-  if (debug) digitalWrite(15, 1);
+  if (debug) digitalWrite(17, 1);
   if(SquareSumLen >= sampleRate)
   {
     if (debug) digitalWrite(18, 1);
@@ -58,7 +58,7 @@ void readCurrent(uint16_t sampleRate, bool debug)
   lastLastCurrent = lastCurrent;
   lastCurrent = Current;
   last_dp = dp;
-  if (debug) digitalWrite(15, 0);
+  if (debug) digitalWrite(17, 0);
 }
 
 void set_adc_prescaler()
